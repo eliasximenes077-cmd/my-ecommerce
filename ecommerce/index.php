@@ -1,43 +1,67 @@
-<?php 
-require_once 'includes/header.php'; 
+<?php
+require_once '../config/database.php';
+require_once '../includes/functions.php';
+require_admin_login();
 
-// Foti Produtu Destaque 8 husi Database
-$stmt = $pdo->prepare("SELECT p.*, pi.image_url FROM products p 
-                        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1 
-                        WHERE p.status = 'active' ORDER BY p.id DESC LIMIT 8");
-$stmt->execute();
-$products = $stmt->fetchAll();
+$total_products = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+$total_orders   = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+$total_users    = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+$total_revenue  = $pdo->query("SELECT SUM(total_amount) FROM orders WHERE payment_status = 'paid'")->fetchColumn() ?: 0.00;
 ?>
-
-<!-- Hero Banner -->
-<div class="hero-banner text-center mb-5">
-    <div class="container">
-        <h1 class="display-4 fw-bold">Moda Foun & Elegante <?= date('Y') ?></h1>
-        <p class="lead">Buka roupa kualidade aas ho folin ne'ebé rasoavel liu iha Timor-Leste.</p>
-        <a href="shop.php" class="btn btn-warning btn-lg fw-bold px-4">Sosa Agora</a>
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-dark text-white p-3 min-vh-100" style="width: 260px;">
+        <h4 class="text-warning text-center fw-bold py-2">ADMIN PANEL</h4>
+        <hr class="border-secondary">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-1"><a href="index.php" class="nav-link active"><i class="fa-solid fa-gauge me-2"></i>Dashboard</a></li>
+            <li class="nav-item mb-1"><a href="products.php" class="nav-link text-white"><i class="fa-solid fa-shirt me-2"></i>Produtu</a></li>
+            <li class="nav-item mb-1"><a href="categories.php" class="nav-link text-white"><i class="fa-solid fa-list me-2"></i>Kategoria</a></li>
+            <li class="nav-item mb-1"><a href="orders.php" class="nav-link text-white"><i class="fa-solid fa-cart-shopping me-2"></i>Pedidu / Orders</a></li>
+            <li class="nav-item mb-1"><a href="users.php" class="nav-link text-white"><i class="fa-solid fa-users me-2"></i>Usuáriu</a></li>
+            <li class="nav-item mt-4"><a href="../logout.php" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i>Sai / Logout</a></li>
+        </ul>
     </div>
-</div>
-
-<!-- Featured Products -->
-<div class="container my-5">
-    <h2 class="fw-bold mb-4">Produtu Foun Hotu</h2>
-    <div class="row g-4">
-        <?php if (empty($products)): ?>
-            <div class="col-12"><p class="text-muted">Seidauk iha produtu ne'ebé tau iha ne'e.</p></div>
-        <?php endif; ?>
-        <?php foreach ($products as $p): ?>
-            <div class="col-md-3 col-sm-6">
-                <div class="card h-100 product-card shadow-sm">
-                    <img src="<?= $p['image_url'] ? sanitize($p['image_url']) : 'https://via.placeholder.com/300x300?text=No+Image' ?>" class="card-img-top" alt="<?= sanitize($p['name']) ?>">
-                    <div class="card-body d-flex flex-column">
-                        <h6 class="card-title text-truncate"><?= sanitize($p['name']) ?></h6>
-                        <p class="fw-bold text-danger mb-3">$<?= number_format($p['price'], 2) ?></p>
-                        <a href="product.php?id=<?= $p['id'] ?>" class="btn btn-outline-dark mt-auto w-100">Haree Detailu</a>
-                    </div>
+    
+    <!-- Main Content -->
+    <div class="flex-fill p-4 bg-light">
+        <h2>Dashboard Overview</h2>
+        <div class="row g-3 my-3">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white p-3 shadow-sm border-0">
+                    <h6>Total Produtu</h6>
+                    <h3><?= $total_products ?></h3>
                 </div>
             </div>
-        <?php endforeach; ?>
+            <div class="col-md-3">
+                <div class="card bg-success text-white p-3 shadow-sm border-0">
+                    <h6>Total Pedidu</h6>
+                    <h3><?= $total_orders ?></h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark p-3 shadow-sm border-0">
+                    <h6>Total Usuáriu</h6>
+                    <h3><?= $total_users ?></h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white p-3 shadow-sm border-0">
+                    <h6>Receita / Revenue</h6>
+                    <h3>$<?= number_format($total_revenue, 2) ?></h3>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<?php require_once 'includes/footer.php'; ?>
+</body>
+</html>
